@@ -90,20 +90,83 @@ func NSUIGraphicsPopContext()
     NSGraphicsContext.restoreGraphicsState()
 }
 
-func NSUIImagePNGRepresentation(_ image: NSUIImage) -> Data?
-{
-    image.lockFocus()
-    let rep = NSBitmapImageRep(focusedViewRect: NSMakeRect(0, 0, image.size.width, image.size.height))
-    image.unlockFocus()
-    return rep?.representation(using: .png, properties: [:])
+func NSUIImagePNGRepresentation(_ image: NSUIImage) -> Data? {
+    // Render NSImage into a bitmap CGContext and encode to PNG without using deprecated APIs.
+    let size = image.size
+    let width = Int(ceil(size.width))
+    let height = Int(ceil(size.height))
+    guard width > 0, height > 0 else { return nil }
+
+    // Create RGBA premultipliedFirst context (8-bpc)
+    guard let colorSpace = CGColorSpace(name: CGColorSpace.sRGB) else { return nil }
+    let bytesPerRow = width * 4
+    guard let ctx = CGContext(data: nil,
+                              width: width,
+                              height: height,
+                              bitsPerComponent: 8,
+                              bytesPerRow: bytesPerRow,
+                              space: colorSpace,
+                              bitmapInfo: CGImageAlphaInfo.premultipliedFirst.rawValue) else { return nil }
+
+    // Flip coordinate system to match AppKit's origin (bottom-left vs top-left)
+    ctx.translateBy(x: 0, y: CGFloat(height))
+    ctx.scaleBy(x: 1, y: -1)
+
+    // Draw the NSImage into the context
+    let rect = CGRect(x: 0, y: 0, width: size.width, height: size.height)
+    // Prefer drawing via CGImage if available for best fidelity
+    if let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil) {
+        ctx.draw(cgImage, in: rect)
+    } else {
+        // Fallback: ask NSImage to draw into current CG context
+        NSGraphicsContext.saveGraphicsState()
+        let graphicsContext = NSGraphicsContext(cgContext: ctx, flipped: false)
+        NSGraphicsContext.current = graphicsContext
+        image.draw(in: rect)
+        NSGraphicsContext.current = nil
+        NSGraphicsContext.restoreGraphicsState()
+    }
+
+    guard let outCGImage = ctx.makeImage() else { return nil }
+    let rep = NSBitmapImageRep(cgImage: outCGImage)
+    return rep.representation(using: .png, properties: [:])
 }
 
-func NSUIImageJPEGRepresentation(_ image: NSUIImage, _ quality: CGFloat = 0.9) -> Data?
-{
-    image.lockFocus()
-    let rep = NSBitmapImageRep(focusedViewRect: NSMakeRect(0, 0, image.size.width, image.size.height))
-    image.unlockFocus()
-    return rep?.representation(using: .jpeg, properties: [NSBitmapImageRep.PropertyKey.compressionFactor: quality])
+func NSUIImageJPEGRepresentation(_ image: NSUIImage, _ quality: CGFloat = 0.9) -> Data? {
+    // Render NSImage into a bitmap CGContext and encode to JPEG without using deprecated APIs.
+    let size = image.size
+    let width = Int(ceil(size.width))
+    let height = Int(ceil(size.height))
+    guard width > 0, height > 0 else { return nil }
+
+    guard let colorSpace = CGColorSpace(name: CGColorSpace.sRGB) else { return nil }
+    let bytesPerRow = width * 4
+    guard let ctx = CGContext(data: nil,
+                              width: width,
+                              height: height,
+                              bitsPerComponent: 8,
+                              bytesPerRow: bytesPerRow,
+                              space: colorSpace,
+                              bitmapInfo: CGImageAlphaInfo.premultipliedFirst.rawValue) else { return nil }
+
+    ctx.translateBy(x: 0, y: CGFloat(height))
+    ctx.scaleBy(x: 1, y: -1)
+
+    let rect = CGRect(x: 0, y: 0, width: size.width, height: size.height)
+    if let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil) {
+        ctx.draw(cgImage, in: rect)
+    } else {
+        NSGraphicsContext.saveGraphicsState()
+        let graphicsContext = NSGraphicsContext(cgContext: ctx, flipped: false)
+        NSGraphicsContext.current = graphicsContext
+        image.draw(in: rect)
+        NSGraphicsContext.current = nil
+        NSGraphicsContext.restoreGraphicsState()
+    }
+
+    guard let outCGImage = ctx.makeImage() else { return nil }
+    let rep = NSBitmapImageRep(cgImage: outCGImage)
+    return rep.representation(using: .jpeg, properties: [NSBitmapImageRep.PropertyKey.compressionFactor: quality])
 }
 
 private var imageContextStack: [CGFloat] = []
@@ -161,3 +224,4 @@ func NSUIGraphicsEndImageContext()
     }
 }
 #endif
+

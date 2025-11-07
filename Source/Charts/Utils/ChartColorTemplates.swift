@@ -124,20 +124,16 @@ open class ChartColorTemplates: NSObject
         }
         else if colorString.hasPrefix("rgba")
         {
-            var a: Float = 1.0
-            var r: Int32 = 0
-            var g: Int32 = 0
-            var b: Int32 = 0
-            let scanner: Scanner = Scanner(string: colorString)
-            scanner.scanString("rgba", into: nil)
-            scanner.scanCharacters(from: leftParenCharset, into: nil)
-            scanner.scanInt32(&r)
-            scanner.scanCharacters(from: commaCharset, into: nil)
-            scanner.scanInt32(&g)
-            scanner.scanCharacters(from: commaCharset, into: nil)
-            scanner.scanInt32(&b)
-            scanner.scanCharacters(from: commaCharset, into: nil)
-            scanner.scanFloat(&a)
+            let scanner = Scanner(string: colorString)
+            _ = scanner.scanString("rgba")
+            _ = scanner.scanCharacters(from: leftParenCharset)
+            let r = scanner.scanInt() ?? 0
+            _ = scanner.scanCharacters(from: commaCharset)
+            let g = scanner.scanInt() ?? 0
+            _ = scanner.scanCharacters(from: commaCharset)
+            let b = scanner.scanInt() ?? 0
+            _ = scanner.scanCharacters(from: commaCharset)
+            let a = scanner.scanFloat() ?? 1.0
             return NSUIColor(
                 red: CGFloat(r) / 255.0,
                 green: CGFloat(g) / 255.0,
@@ -147,20 +143,16 @@ open class ChartColorTemplates: NSObject
         }
         else if colorString.hasPrefix("argb")
         {
-            var a: Float = 1.0
-            var r: Int32 = 0
-            var g: Int32 = 0
-            var b: Int32 = 0
-            let scanner: Scanner = Scanner(string: colorString)
-            scanner.scanString("argb", into: nil)
-            scanner.scanCharacters(from: leftParenCharset, into: nil)
-            scanner.scanFloat(&a)
-            scanner.scanCharacters(from: commaCharset, into: nil)
-            scanner.scanInt32(&r)
-            scanner.scanCharacters(from: commaCharset, into: nil)
-            scanner.scanInt32(&g)
-            scanner.scanCharacters(from: commaCharset, into: nil)
-            scanner.scanInt32(&b)
+            let scanner = Scanner(string: colorString)
+            _ = scanner.scanString("argb")
+            _ = scanner.scanCharacters(from: leftParenCharset)
+            let a = scanner.scanFloat() ?? 1.0
+            _ = scanner.scanCharacters(from: commaCharset)
+            let r = scanner.scanInt() ?? 0
+            _ = scanner.scanCharacters(from: commaCharset)
+            let g = scanner.scanInt() ?? 0
+            _ = scanner.scanCharacters(from: commaCharset)
+            let b = scanner.scanInt() ?? 0
             return NSUIColor(
                 red: CGFloat(r) / 255.0,
                 green: CGFloat(g) / 255.0,
@@ -170,17 +162,14 @@ open class ChartColorTemplates: NSObject
         }
         else if colorString.hasPrefix("rgb")
         {
-            var r: Int32 = 0
-            var g: Int32 = 0
-            var b: Int32 = 0
-            let scanner: Scanner = Scanner(string: colorString)
-            scanner.scanString("rgb", into: nil)
-            scanner.scanCharacters(from: leftParenCharset, into: nil)
-            scanner.scanInt32(&r)
-            scanner.scanCharacters(from: commaCharset, into: nil)
-            scanner.scanInt32(&g)
-            scanner.scanCharacters(from: commaCharset, into: nil)
-            scanner.scanInt32(&b)
+            let scanner = Scanner(string: colorString)
+            _ = scanner.scanString("rgb")
+            _ = scanner.scanCharacters(from: leftParenCharset)
+            let r = scanner.scanInt() ?? 0
+            _ = scanner.scanCharacters(from: commaCharset)
+            let g = scanner.scanInt() ?? 0
+            _ = scanner.scanCharacters(from: commaCharset)
+            let b = scanner.scanInt() ?? 0
             return NSUIColor(
                 red: CGFloat(r) / 255.0,
                 green: CGFloat(g) / 255.0,
@@ -192,3 +181,4 @@ open class ChartColorTemplates: NSObject
         return NSUIColor.clear
     }
 }
+

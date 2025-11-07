@@ -47,9 +47,11 @@ public protocol BarChartDataSetProtocol: BarLineScatterCandleBubbleChartDataSetP
     /// the corner radius applied to each data set
     var cornerRadius: CGFloat { get set }
     
+#if canImport(UIKit)
     /// array of corners to be rounded
     var roundedCorners: UIRectCorner { get set }
     
     /// array of corners to be rounded
     var roundedCornersInverted: UIRectCorner { get }
+    #endif
 }
