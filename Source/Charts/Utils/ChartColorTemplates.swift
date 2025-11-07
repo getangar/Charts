@@ -124,16 +124,20 @@ open class ChartColorTemplates: NSObject
         }
         else if colorString.hasPrefix("rgba")
         {
-            let scanner = Scanner(string: colorString)
-            _ = scanner.scanString("rgba")
-            _ = scanner.scanCharacters(from: leftParenCharset)
-            let r = scanner.scanInt() ?? 0
-            _ = scanner.scanCharacters(from: commaCharset)
-            let g = scanner.scanInt() ?? 0
-            _ = scanner.scanCharacters(from: commaCharset)
-            let b = scanner.scanInt() ?? 0
-            _ = scanner.scanCharacters(from: commaCharset)
-            let a = scanner.scanFloat() ?? 1.0
+            // Parse rgba(r,g,b,a) without using newer Scanner APIs
+            let prefix = "rgba"
+            guard let open = colorString.firstIndex(of: "("), let close = colorString.lastIndex(of: ")"), open > colorString.startIndex else { return .clear }
+            let inside = colorString[colorString.index(after: open)..<close]
+            let parts = inside.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+            guard parts.count == 4,
+                  let rVal = Int(parts[0]),
+                  let gVal = Int(parts[1]),
+                  let bVal = Int(parts[2]),
+                  let aVal = Double(parts[3]) else { return .clear }
+            let r = max(0, min(255, rVal))
+            let g = max(0, min(255, gVal))
+            let b = max(0, min(255, bVal))
+            let a = max(0.0, min(1.0, aVal))
             return NSUIColor(
                 red: CGFloat(r) / 255.0,
                 green: CGFloat(g) / 255.0,
@@ -143,16 +147,19 @@ open class ChartColorTemplates: NSObject
         }
         else if colorString.hasPrefix("argb")
         {
-            let scanner = Scanner(string: colorString)
-            _ = scanner.scanString("argb")
-            _ = scanner.scanCharacters(from: leftParenCharset)
-            let a = scanner.scanFloat() ?? 1.0
-            _ = scanner.scanCharacters(from: commaCharset)
-            let r = scanner.scanInt() ?? 0
-            _ = scanner.scanCharacters(from: commaCharset)
-            let g = scanner.scanInt() ?? 0
-            _ = scanner.scanCharacters(from: commaCharset)
-            let b = scanner.scanInt() ?? 0
+            // Parse argb(a,r,g,b) without using newer Scanner APIs
+            guard let open = colorString.firstIndex(of: "("), let close = colorString.lastIndex(of: ")"), open > colorString.startIndex else { return .clear }
+            let inside = colorString[colorString.index(after: open)..<close]
+            let parts = inside.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+            guard parts.count == 4,
+                  let aVal = Double(parts[0]),
+                  let rVal = Int(parts[1]),
+                  let gVal = Int(parts[2]),
+                  let bVal = Int(parts[3]) else { return .clear }
+            let r = max(0, min(255, rVal))
+            let g = max(0, min(255, gVal))
+            let b = max(0, min(255, bVal))
+            let a = max(0.0, min(1.0, aVal))
             return NSUIColor(
                 red: CGFloat(r) / 255.0,
                 green: CGFloat(g) / 255.0,
@@ -162,14 +169,17 @@ open class ChartColorTemplates: NSObject
         }
         else if colorString.hasPrefix("rgb")
         {
-            let scanner = Scanner(string: colorString)
-            _ = scanner.scanString("rgb")
-            _ = scanner.scanCharacters(from: leftParenCharset)
-            let r = scanner.scanInt() ?? 0
-            _ = scanner.scanCharacters(from: commaCharset)
-            let g = scanner.scanInt() ?? 0
-            _ = scanner.scanCharacters(from: commaCharset)
-            let b = scanner.scanInt() ?? 0
+            // Parse rgb(r,g,b) without using newer Scanner APIs
+            guard let open = colorString.firstIndex(of: "("), let close = colorString.lastIndex(of: ")"), open > colorString.startIndex else { return .clear }
+            let inside = colorString[colorString.index(after: open)..<close]
+            let parts = inside.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+            guard parts.count == 3,
+                  let rVal = Int(parts[0]),
+                  let gVal = Int(parts[1]),
+                  let bVal = Int(parts[2]) else { return .clear }
+            let r = max(0, min(255, rVal))
+            let g = max(0, min(255, gVal))
+            let b = max(0, min(255, bVal))
             return NSUIColor(
                 red: CGFloat(r) / 255.0,
                 green: CGFloat(g) / 255.0,
